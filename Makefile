@@ -33,6 +33,9 @@ config: config.py
 adafruit_sgp30: adafruit_sgp30.py
 	$(BIN)$(AMPY) -p $(PORT) put $<
 
+bme280: bme280.py
+	$(BIN)$(AMPY) -p $(PORT) put $<
+
 all: config adafruit_sgp30 main boot
 
 rshell:

@@ -10,6 +10,14 @@ from time import sleep
 from machine import I2C
 
 try:
+  from umqtt.robust import MQTTClient
+  from bme280 import BME280
+except Exception as e:
+  print("Exception: {}".format(e))
+  config.MQTT_ENABLE = False
+  pass
+
+try:
   np = neopixel.NeoPixel(machine.Pin(27), 1) # valid for Atom lite (m5stack)
   np[0] = (0, 0, 64)  # set to blue
   np.write()
@@ -46,6 +54,17 @@ else:
   for d in devices:
     print("Decimal address: ",d," | Hexa address: ",hex(d))
 
+if config.MQTT_ENABLE is True and config.WLAN_ENABLE is True:
+  mqc = MQTTClient("umqtt_client_"+config.LOCATION,server=b'{}'.format(config.MQTT_BROKER),port=1883,ssl=False)
+
+def write_mqtt(topic,ppm,ppb):
+  payload = b'{"location":"' + config.LOCATION + '","ppm":' + ppm + ',"ppb":' + ppb + '}'
+  try:
+    mqc.connect()
+    mqc.publish(b""+topic,payload)
+    mqc.disconnect()
+  except Exception as e:
+    print("Exception: {}".format(e))
 
 # initialize SGP30 sensor
 try:
@@ -59,9 +78,11 @@ except Exception as e:
 
 # main
 while True:
-  try:
+  try :
     co2_eq, tvoc = sgp30.iaq_measure()
     print('co2eq = ' + str(co2_eq) + ' ppm \t tvoc = ' + str(tvoc) + ' ppb')
     fade(co2_eq)
+    if config.MQTT_ENABLE is True and config.WLAN_ENABLE is True:
+      write_mqtt(config.MQTT_TOPIC,str(co2_eq),str(tvoc)) # cut the last character, else it's no number!
   except Exception as e:
     print("Exception: {}".format(e))
