@@ -1,0 +1,7 @@
+LOCATION         = "buro"
+MQTT_ENABLE      = False
+MQTT_BROKER      = "10.4.81.11"
+MQTT_TOPIC       = "sensors/"+LOCATION
+WLAN_ENABLE      = False
+WLAN_SSID        = "SSID"
+WLAN_PASS        = "KEY"
